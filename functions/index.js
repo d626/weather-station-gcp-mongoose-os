@@ -67,6 +67,84 @@ function insertIntoBigquery(data) {
 }
 
 /**
+ * Receive data from pubsub, then 
+ * Write telemetry raw data to bigquery
+ * Maintain last data on firebase realtime database
+ */
+exports.receiveThingyTelemetry = functions.pubsub
+  .topic('thingy-topic')
+  .onPublish((message, context) => {
+    const attributes = message.attributes;
+    const payload = message.json;
+
+    const deviceId = attributes['deviceId'];
+
+    const message_type = payload.type;
+
+    let data = {
+      deviceId: deviceId,
+      timestamp: context.timestamp
+    };
+
+    switch (message_type) {
+      case "temperature":
+        data.temperature = Number("" + payload.data.integer + "." + payload.data.decimal);
+        break;
+      case "pressure":
+        data.pressure = Number("" + payload.data.integer + "." + payload.data.decimal);
+        break;
+      case "humidity":
+        const humidity = payload.data.humidity;
+        if (humidity < 0 || humidity > 100) {
+          console.log("Invalid humidity value: " + humidity);
+          return;
+        }
+        data.humidity = payload.data.humidity;
+        break;
+      case "gas":
+        data.eco2_ppm = payload.data.eco2_ppm;
+        data.tvoc_ppb = payload.data.tvoc_ppb;
+        break;
+      case "color":
+        data.red = payload.data.red;
+        data.green = payload.data.green;
+        data.blue = payload.data.blue;
+        data.clear = payload.data.clear;
+        break;
+      default:
+        console.log(payload);
+        console.log("Invalid message");
+        return;
+    };
+
+    return Promise.all([
+      insertIntoThingyBigquery(data, message_type + "_table"),
+      updateCurrentThingyDataFirebase(data)
+    ]);
+  });
+
+/** 
+ * Maintain last status in firebase
+*/
+function updateCurrentThingyDataFirebase(data) {
+  return db.ref(`/devices/thingy/${data.deviceId}`).set({
+    lastTimestamp: data.timestamp
+  });
+}
+
+/**
+ * Store all the raw data in bigquery
+ */
+function insertIntoThingyBigquery(data, tablename) {
+  // TODO: Make sure you set the `bigquery.datasetname` Google Cloud environment variable.
+  const dataset = bigquery.dataset("thingy_dataset");
+  // TODO: Make sure you set the `bigquery.tablename` Google Cloud environment variable.
+  const table = dataset.table(tablename);
+
+  return table.insert(data);
+}
+
+/**
  * Query bigquery with the last 7 days of data
  * HTTPS endpoint to be used by the webapp
  */
