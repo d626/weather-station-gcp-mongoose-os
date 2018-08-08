@@ -119,17 +119,50 @@ exports.receiveThingyTelemetry = functions.pubsub
 
     return Promise.all([
       insertIntoThingyBigquery(data, message_type + "_table"),
-      updateCurrentThingyDataFirebase(data)
+      updateCurrentThingyDataFirebase(data, message_type)
     ]);
   });
 
 /** 
  * Maintain last status in firebase
 */
-function updateCurrentThingyDataFirebase(data) {
-  return db.ref(`/devices/thingy/${data.deviceId}`).set({
-    lastTimestamp: data.timestamp
-  });
+function updateCurrentThingyDataFirebase(data, type) {
+  let dbRef = db.ref(`/sensor/${type}/${data.deviceId}`);
+  switch (type) {
+    case "temperature":
+      return dbRef.set({
+        lastTimestamp: data.timestamp,
+        temperature: data.temperature
+      });
+    case "pressure":
+      return dbRef.set({
+        lastTimestamp: data.timestamp,
+        pressure: data.pressure
+      });
+    case "humidity":
+      return dbRef.set({
+        lastTimestamp: data.timestamp,
+        humidity: data.humidity
+      });
+    case "gas":
+      return dbRef.set({
+        lastTimestamp: data.timestamp,
+        eco2_ppm: data.eco2_ppm,
+        tvoc_ppb: data.tvoc_ppb
+      });
+    case "color":
+      return dbRef.set({
+        lastTimestamp: data.timestamp,
+        red: data.red,
+        green: data.green,
+        blue: data.blue,
+        clear: data.clear
+      });
+    default:
+      console.log("Unknown sensor type to be updated in Firebase RealTime Database");
+      console.log(type);
+      return;
+  }
 }
 
 /**
