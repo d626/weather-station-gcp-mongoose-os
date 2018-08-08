@@ -155,7 +155,7 @@ exports.getReportData = functions.https.onRequest((req, res) => {
 
   const query = `
     SELECT 
-      TIMESTAMP_TRUNC(data.timestamp, HOUR, 'America/Cuiaba') data_hora,
+      TIMESTAMP_TRUNC(data.timestamp, SECOND, 'America/Cuiaba') data_hora,
       avg(data.temp) as avg_temp,
       avg(data.humidity) as avg_hum,
       min(data.temp) as min_temp,
@@ -164,7 +164,110 @@ exports.getReportData = functions.https.onRequest((req, res) => {
       max(data.humidity) as max_hum,
       count(*) as data_points      
     FROM ${table} data
-    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 7 DAY) and current_timestamp()
+    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 1 HOUR) and current_timestamp()
+    group by data_hora
+    order by data_hora
+  `;
+
+  return bigquery
+    .query({
+      query: query,
+      useLegacySql: false
+    })
+    .then(result => {
+      const rows = result[0];
+
+      cors(req, res, () => {
+        res.json(rows);
+      });
+    });
+});
+
+/**
+ * Query bigquery with the last 7 days of data
+ * HTTPS endpoint to be used by the webapp
+ */
+exports.getTempData = functions.https.onRequest((req, res) => {
+  const table = '`' + functions.config().project.id + '.' 
+                    + 'thingy_dataset' + '.'
+                    + 'temperature_table' + '`';
+
+  const query = `
+    SELECT 
+      TIMESTAMP_TRUNC(data.timestamp, SECOND, 'UTC') data_hora,
+      avg(data.temperature) as avgTemp,
+      count(*) as data_points      
+    FROM ${table} data
+    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 1 HOUR) and current_timestamp()
+    group by data_hora
+    order by data_hora
+  `;
+
+  return bigquery
+    .query({
+      query: query,
+      useLegacySql: false
+    })
+    .then(result => {
+      const rows = result[0];
+
+      cors(req, res, () => {
+        res.json(rows);
+      });
+    });
+});
+
+/**
+ * Query bigquery with the last 7 days of data
+ * HTTPS endpoint to be used by the webapp
+ */
+exports.getGasData = functions.https.onRequest((req, res) => {
+  const table = '`' + functions.config().project.id + '.' 
+                    + 'thingy_dataset' + '.'
+                    + 'gas_table' + '`';
+
+  const query = `
+    SELECT 
+      TIMESTAMP_TRUNC(data.timestamp, SECOND, 'UTC') data_hora,
+      avg(data.eco2_ppm) as avgC02,
+      avg(data.tvoc_ppb) as avgOrg,
+      count(*) as data_points      
+    FROM ${table} data
+    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 1 HOUR) and current_timestamp()
+    group by data_hora
+    order by data_hora
+  `;
+
+  return bigquery
+    .query({
+      query: query,
+      useLegacySql: false
+    })
+    .then(result => {
+      const rows = result[0];
+
+      cors(req, res, () => {
+        res.json(rows);
+      });
+    });
+});
+
+/**
+ * Query bigquery with the last 7 days of data
+ * HTTPS endpoint to be used by the webapp
+ */
+exports.getHumData = functions.https.onRequest((req, res) => {
+  const table = '`' + functions.config().project.id + '.' 
+                    + 'thingy_dataset' + '.'
+                    + 'humidity_table' + '`';
+
+  const query = `
+    SELECT 
+      TIMESTAMP_TRUNC(data.timestamp, SECOND, 'UTC') data_hora,
+      avg(data.humidity) as avgHum,
+      count(*) as data_points      
+    FROM ${table} data
+    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 24 HOUR) and current_timestamp()
     group by data_hora
     order by data_hora
   `;
