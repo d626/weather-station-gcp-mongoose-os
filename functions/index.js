@@ -76,6 +76,7 @@ exports.receiveThingyTelemetry = functions.pubsub
   .onPublish((message, context) => {
     const attributes = message.attributes;
     const payload = message.json;
+    console.log(payload);
 
     const deviceId = attributes['deviceId'];
 
