@@ -2,44 +2,77 @@ document.addEventListener('DOMContentLoaded', function() {
   const db = firebase.database();
 
   // Create listeners
-  const devicesRef = db.ref('/devices');
+  const sensorsRef = db.ref('/sensor');
 
   // Register functions that update with last devices state
-  devicesRef.on('value', function(snapshot) {
-    let devices = snapshot.val();
-    console.log(devices);
-    let devicesEl = document.getElementById('devices');
-    devicesEl.innerHTML = '';
+  sensorsRef.on('value', function(snapshot) {
+    let sensors = snapshot.val();
+    let showedDevices = [];
 
-    for (var key in devices) {
-      let deviceState = devices[key];
-      let li = document.createElement('li');
-      li.className = 'mdc-list-item';
-      li.innerHTML = `
-        <span class="mdc-list-item__start-detail grey-bg" role="presentation">
-            <i class="material-icons" aria-hidden="true">cloud</i>
-        </span>
-        <span class="mdc-list-item__text">
-            Station #${key}
-            <span class="mdc-list-item__text__secondary">
-                ${deviceState.temp} C°/${deviceState.humidity} %
-            </span>
-            <span class="mdc-list-item__text__secondary">
-                Last updated: ${new Date(
-                  deviceState.lastTimestamp
-                ).toLocaleString()}
-            </span>
-        </span>
-      `;
+    console.log(sensors);
+    let sensorsEl = document.getElementById('sensors');
+    sensorsEl.innerHTML = '';
 
-      devicesEl.appendChild(li);
+    let deviceRow = document.createElement("tr");
+    
+    deviceRow.setAttribute("id","deviceRow");    
+    sensorsEl.appendChild(deviceRow);
+
+    deviceRow = document.getElementById('deviceRow');
+
+    let emptyCell = document.createElement("th");
+    deviceRow.appendChild(emptyCell);
+
+    for (var sensorType in sensors) {
+
+      let tr = document.createElement('tr');
+      let th = document.createElement('th');
+      
+      th.innerHTML = `${sensorType}`;
+      tr.appendChild(th);
+
+      let devices = snapshot.child(sensorType).val();
+
+      for(var device in devices) {
+        let parameters = snapshot.child(sensorType).child(device).val();
+        
+
+        th = document.createElement('th');
+
+        if(!showedDevices.includes(device)) {
+          let thDevice = document.createElement('th');
+          thDevice.innerHTML = `|${device}|`
+          deviceRow.appendChild(thDevice);
+
+          showedDevices.push(device);
+        }
+
+        for(var values in parameters) {
+          if(values != 'lastTimestamp') {
+            th.innerHTML += `|${parameters[values]}| `;   
+          }       
+        }
+        
+        tr.appendChild(th);
+      }
+      sensorsEl.appendChild(tr);
     }
+    
   });
-
-  fetchReportData();
+  fetchTempData(); //Initial report build
+  fetchHumData();
+  fetchGasData();
 });
 
 const reportDataUrl = '/getReportData';
+const tempDataUrl = '/getTempData';
+const humDataUrl = '/getHumData';
+const gasDataUrl = '/getGasData';
+var tempChart;
+var humChart;
+var cO2Chart;
+var orgChart;
+var chartsAreBuilt = false;
 
 function fetchReportData() {
   try {
@@ -55,21 +88,100 @@ function fetchReportData() {
         var minHumData = rows.map(row => row.min_hum);
 
         var labels = rows.map(row => row.data_hora.value);
+        if(!chartsAreBuilt) {
+          tempChart = buildLineChart(
+              'tempLineChart',
+              'Temperature in C°',
+              labels,
+              '#E64D3D',
+              avgTempData
+            );
+          humChart = buildLineChart(
+              'humLineChart',
+              'Humidity in %',
+              labels,
+              '#0393FA',
+              avgHumData
+            );
+          chartsAreBuilt = true;
+        } else {
+          console.log("Updating charts.")
+          addData(tempChart, labels[labels.length-1], avgTempData[avgTempData.length - 1]);
+          addData(humChart, labels[labels.length-1], avgHumData[avgHumData.length - 1]);
+          addData(pressureChart, labels[labels.length-1], avgPressureData[avgPressureData.length - 1]);
+          addData(c02Chart, labels[labels.length-1], avgC02Data[avgC02Data.length - 1]);
+        }
+      });
+  } catch (e) {
+    alert('Error getting report data');
+  }
+}
 
-        buildLineChart(
-          'tempLineChart',
-          'Temperature in C°',
-          labels,
-          '#E64D3D',
-          avgTempData
-        );
-        buildLineChart(
-          'humLineChart',
-          'Humidity in %',
-          labels,
-          '#0393FA',
-          avgHumData
-        );
+function fetchTempData() {
+  try {
+    fetch(tempDataUrl)
+      .then(res => res.json())
+      .then(rows => {
+        var avgTempData = rows.map(row => row.avgTemp);
+
+        var labels = rows.map(row => row.data_hora.value);
+          tempChart = buildLineChart(
+              'tempLineChart',
+              'Temperature in C°',
+              labels,
+              '#E64D3D',
+              avgTempData
+            );
+      });
+  } catch (e) {
+    alert('Error getting report data');
+  }
+}
+
+function fetchHumData() {
+  try {
+    fetch(humDataUrl)
+      .then(res => res.json())
+      .then(rows => {
+        var avgHumData = rows.map(row => row.avgHum);
+
+        var labels = rows.map(row => row.data_hora.value);
+          humChart = buildLineChart(
+              'humLineChart',
+              'Humitidy in %',
+              labels,
+              '#E64D3F',
+              avgHumData
+            );
+      });
+  } catch (e) {
+    alert('Error getting report data');
+  }
+}
+
+function fetchGasData() {
+  try {
+    fetch(gasDataUrl)
+      .then(res => res.json())
+      .then(rows => {
+        var avgC02Data = rows.map(row => row.avgC02);
+        var avgOrgData = rows.map(row => row.avgOrg);
+
+        var labels = rows.map(row => row.data_hora.value);
+          orgChart = buildLineChart(
+              'c02LineChart',
+              'C02 concentration in ppm',
+              labels,
+              '#E64D3A',
+              avgC02Data
+            );
+          orgChart = buildLineChart(
+              'orgLineChart',
+              'Organic component concentration in ppb',
+              labels,
+              '#E64D3C',
+              avgOrgData
+          );
       });
   } catch (e) {
     alert('Error getting report data');
@@ -80,7 +192,7 @@ function fetchReportData() {
 // dados passados (data)
 function buildLineChart(el, label, labels, color, avgData) {
   const elNode = document.getElementById(el);
-  new Chart(elNode, {
+  var chart = new Chart(elNode, {
     type: 'line',
     data: {
       labels: labels,
@@ -127,4 +239,14 @@ function buildLineChart(el, label, labels, color, avgData) {
 
   const progressEl = document.getElementById(el + '_progress');
   progressEl.remove();
+
+  return chart;
+}
+
+function addData(chart, label, data) {
+  chart.data.labels.push(label);
+  chart.data.datasets.forEach((dataset) => {
+      dataset.data.push(data);
+  });
+  chart.update();
 }

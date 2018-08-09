@@ -33,7 +33,7 @@
   <header class="mdc-toolbar mdc-toolbar--fixed">
     <div class="mdc-toolbar__row">
       <section class="mdc-toolbar__section mdc-toolbar__section--align-start">
-        <span class="mdc-toolbar__title">Weather Station - Cloud IoT Core</span>
+        <span class="mdc-toolbar__title">Thingy:52 - Cloud IoT Core</span>
       </section>
       <!--
         <section class="mdc-toolbar__section mdc-toolbar__section--align-end" role="toolbar">
@@ -50,7 +50,7 @@
             <section class="mdc-card__primary">
               <h1 class="mdc-card__title mdc-card__title--large">Current data collected</h1>
             </section>
-            <ul id="devices" class="mdc-list mdc-list--two-line mdc-list--avatar-list two-line-avatar-text-icon-demo">
+            <table id="sensors">
               <div role="progressbar" class="mdc-linear-progress mdc-linear-progress--indeterminate">
                 <div class="mdc-linear-progress__buffering-dots"></div>
                 <div class="mdc-linear-progress__buffer"></div>
@@ -61,13 +61,13 @@
                   <span class="mdc-linear-progress__bar-inner"></span>
                 </div>
               </div>
-            </ul>
+            </table>
           </div>
         </div>
         <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-6">
           <div class="mdc-card">
             <section class="mdc-card__primary">
-              <h1 class="mdc-card__title mdc-card__title--large">Temperature - Last 7 days</h1>
+              <h1 class="mdc-card__title mdc-card__title--large">Temperature</h1>
             </section>
             <canvas id="tempLineChart"></canvas>
             <div role="progressbar" id="tempLineChart_progress" class="mdc-linear-progress mdc-linear-progress--indeterminate">
@@ -85,7 +85,7 @@
         <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-6">
           <div class="mdc-card">
             <section class="mdc-card__primary">
-              <h1 class="mdc-card__title mdc-card__title--large">Humidity - Last 7 days</h1>
+              <h1 class="mdc-card__title mdc-card__title--large">Humidity</h1>
             </section>
             <canvas id="humLineChart"></canvas>
             <div role="progressbar" id="humLineChart_progress" class="mdc-linear-progress mdc-linear-progress--indeterminate">
@@ -100,6 +100,42 @@
             </div>
           </div>
         </div>
+        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-6">
+          <div class="mdc-card">
+            <section class="mdc-card__primary">
+              <h1 class="mdc-card__title mdc-card__title--large">Pressure</h1>
+            </section>
+            <canvas id="orgLineChart"></canvas>
+            <div role="progressbar" id="pressureLineChart_progress" class="mdc-linear-progress mdc-linear-progress--indeterminate">
+              <div class="mdc-linear-progress__buffering-dots"></div>
+              <div class="mdc-linear-progress__buffer"></div>
+              <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
+                <span class="mdc-linear-progress__bar-inner"></span>
+              </div>
+              <div class="mdc-linear-progress__bar mdc-linear-progress__secondary-bar">
+                <span class="mdc-linear-progress__bar-inner"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-6">
+          <div class="mdc-card">
+            <section class="mdc-card__primary">
+              <h1 class="mdc-card__title mdc-card__title--large">C02 concentration</h1>
+            </section>
+            <canvas id="cO2LineChart"></canvas>
+            <div role="progressbar" id="c02LineChart_progress" class="mdc-linear-progress mdc-linear-progress--indeterminate">
+              <div class="mdc-linear-progress__buffering-dots"></div>
+              <div class="mdc-linear-progress__buffer"></div>
+              <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
+                <span class="mdc-linear-progress__bar-inner"></span>
+              </div>
+              <div class="mdc-linear-progress__bar mdc-linear-progress__secondary-bar">
+                <span class="mdc-linear-progress__bar-inner"></span>
+              </div>
+            </div>
+          </div>
+        </div>        
       </div>
     </div>
   </main>

@@ -6,10 +6,21 @@
     "public": "public",
     "rewrites": [
       { "source": "/getReportData", "function": "getReportData" },
+      { "source": "/getTempData", "function": "getTempData" },
+      { "source": "/getHumData", "function": "getHumData" },
+      { "source": "/getGasData", "function": "getGasData" },
       {
         "source": "**",
         "destination": "/index.html"
       }
+    ],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
     ]
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

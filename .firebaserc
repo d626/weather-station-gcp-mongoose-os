@@ -1,5 +1,6 @@
 {
   "projects": {
-    "production": "weather-station-iot-170004"
+    "production": "weather-station-iot-170004",
+    "default": "nrf91-receiver"
   }
 }
