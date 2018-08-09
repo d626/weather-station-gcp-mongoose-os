@@ -231,7 +231,7 @@ exports.getTempData = functions.https.onRequest((req, res) => {
       avg(data.temperature) as avgTemp,
       count(*) as data_points      
     FROM ${table} data
-    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 1 HOUR) and current_timestamp()
+    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 1 MINUTE) and current_timestamp()
     group by data_hora
     order by data_hora
   `;
@@ -262,11 +262,11 @@ exports.getGasData = functions.https.onRequest((req, res) => {
   const query = `
     SELECT 
       TIMESTAMP_TRUNC(data.timestamp, SECOND, 'UTC') data_hora,
-      avg(data.eco2_ppm) as avgC02,
+      avg(data.eco2_ppm) as avgCO2,
       avg(data.tvoc_ppb) as avgOrg,
       count(*) as data_points      
     FROM ${table} data
-    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 1 HOUR) and current_timestamp()
+    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 1 MINUTE) and current_timestamp()
     group by data_hora
     order by data_hora
   `;
@@ -300,7 +300,7 @@ exports.getHumData = functions.https.onRequest((req, res) => {
       avg(data.humidity) as avgHum,
       count(*) as data_points      
     FROM ${table} data
-    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 24 HOUR) and current_timestamp()
+    WHERE data.timestamp between timestamp_sub(current_timestamp, INTERVAL 1 MINUTE) and current_timestamp()
     group by data_hora
     order by data_hora
   `;

@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Weather Station</title>
+  <title>Thingy on the web</title>
 
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
@@ -51,7 +51,7 @@
               <h1 class="mdc-card__title mdc-card__title--large">Current data collected</h1>
             </section>
             <table id="sensors">
-              <div role="progressbar" class="mdc-linear-progress mdc-linear-progress--indeterminate">
+              <div id="table_progress" role="progressbar" class="mdc-linear-progress mdc-linear-progress--indeterminate">
                 <div class="mdc-linear-progress__buffering-dots"></div>
                 <div class="mdc-linear-progress__buffer"></div>
                 <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
@@ -103,10 +103,10 @@
         <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-6">
           <div class="mdc-card">
             <section class="mdc-card__primary">
-              <h1 class="mdc-card__title mdc-card__title--large">Pressure</h1>
+              <h1 class="mdc-card__title mdc-card__title--large">Volatile organic components</h1>
             </section>
             <canvas id="orgLineChart"></canvas>
-            <div role="progressbar" id="pressureLineChart_progress" class="mdc-linear-progress mdc-linear-progress--indeterminate">
+            <div role="progressbar" id="orgLineChart_progress" class="mdc-linear-progress mdc-linear-progress--indeterminate">
               <div class="mdc-linear-progress__buffering-dots"></div>
               <div class="mdc-linear-progress__buffer"></div>
               <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
@@ -121,10 +121,10 @@
         <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-6">
           <div class="mdc-card">
             <section class="mdc-card__primary">
-              <h1 class="mdc-card__title mdc-card__title--large">C02 concentration</h1>
+              <h1 class="mdc-card__title mdc-card__title--large">CO2 concentration</h1>
             </section>
             <canvas id="cO2LineChart"></canvas>
-            <div role="progressbar" id="c02LineChart_progress" class="mdc-linear-progress mdc-linear-progress--indeterminate">
+            <div role="progressbar" id="cO2LineChart_progress" class="mdc-linear-progress mdc-linear-progress--indeterminate">
               <div class="mdc-linear-progress__buffering-dots"></div>
               <div class="mdc-linear-progress__buffer"></div>
               <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">

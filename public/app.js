@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let sensors = snapshot.val();
     let showedDevices = [];
 
-    console.log(sensors);
+    //console.log(sensors);
     let sensorsEl = document.getElementById('sensors');
     sensorsEl.innerHTML = '';
 
@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       for(var device in devices) {
         let parameters = snapshot.child(sensorType).child(device).val();
+        let deviceState = devices[device];
         
 
         th = document.createElement('th');
@@ -47,29 +48,51 @@ document.addEventListener('DOMContentLoaded', function() {
           showedDevices.push(device);
         }
 
-        for(var values in parameters) {
-          if(values != 'lastTimestamp') {
-            th.innerHTML += `|${parameters[values]}| `;   
-          }       
+        switch(sensorType) {
+          case 'color':
+            th.innerHTML += `|R:${deviceState.red}| ` + `|G:${deviceState.green}| ` + `|B:${deviceState.blue}| ` + `|C:${deviceState.clear}|`;
+          break;
+          case 'gas':
+            th.innerHTML += `|CO2: ${deviceState.eco2_ppm} ppm | ` + `|VOC: ${deviceState.tvoc_ppb} ppb |`;
+          break;
+          case 'humidity':
+            th.innerHTML += `|${deviceState.humidity} %|`;
+          break;
+          case 'pressure':
+            th.innerHTML += `|${deviceState.pressure} mBar|`;
+          break;
+          case 'temperature':
+            th.innerHTML += `|${deviceState.temperature} °C|`;
+          break;
         }
         
         tr.appendChild(th);
       }
       sensorsEl.appendChild(tr);
     }
-    
+
   });
-  fetchTempData(); //Initial report build
-  fetchHumData();
-  fetchGasData();
+  initReportGathering();
+  //fetchTempData();
+  //fetchHumData();
+  //fetchGasData();
 });
+
+const progressEl = document.getElementById('table_progress');
+progressEl.remove();
+
+function initReportGathering() {
+  setInterval(fetchTempData, 500);
+  setInterval(fetchHumData, 500);
+  setInterval(fetchGasData, 500);
+}
 
 const reportDataUrl = '/getReportData';
 const tempDataUrl = '/getTempData';
 const humDataUrl = '/getHumData';
 const gasDataUrl = '/getGasData';
 var tempChart;
-var humChart;
+var humChart; 
 var cO2Chart;
 var orgChart;
 var chartsAreBuilt = false;
@@ -122,9 +145,12 @@ function fetchTempData() {
     fetch(tempDataUrl)
       .then(res => res.json())
       .then(rows => {
+        console.log("Getting tempdata");
+
         var avgTempData = rows.map(row => row.avgTemp);
 
         var labels = rows.map(row => row.data_hora.value);
+        if(!tempChart) {
           tempChart = buildLineChart(
               'tempLineChart',
               'Temperature in C°',
@@ -132,7 +158,11 @@ function fetchTempData() {
               '#E64D3D',
               avgTempData
             );
+          } else {
+            addData(tempChart, labels[labels.length-1], avgTempData[avgTempData.length - 1]);
+          }
       });
+      
   } catch (e) {
     alert('Error getting report data');
   }
@@ -143,9 +173,12 @@ function fetchHumData() {
     fetch(humDataUrl)
       .then(res => res.json())
       .then(rows => {
+        console.log("Getting humData");
+
         var avgHumData = rows.map(row => row.avgHum);
 
         var labels = rows.map(row => row.data_hora.value);
+        if(!humChart) {
           humChart = buildLineChart(
               'humLineChart',
               'Humitidy in %',
@@ -153,6 +186,9 @@ function fetchHumData() {
               '#E64D3F',
               avgHumData
             );
+        } else {
+          addData(humChart, labels[labels.length-1], avgHumData[avgHumData.length - 1]);
+        }
       });
   } catch (e) {
     alert('Error getting report data');
@@ -164,24 +200,31 @@ function fetchGasData() {
     fetch(gasDataUrl)
       .then(res => res.json())
       .then(rows => {
-        var avgC02Data = rows.map(row => row.avgC02);
+        console.log("Getting gasData");
+
+        var avgCO2Data = rows.map(row => row.avgCO2);
         var avgOrgData = rows.map(row => row.avgOrg);
 
         var labels = rows.map(row => row.data_hora.value);
-          orgChart = buildLineChart(
-              'c02LineChart',
-              'C02 concentration in ppm',
+        if(!cO2Chart && !orgChart) {
+          cO2Chart = buildLineChart(
+              'cO2LineChart',
+              'CO2 concentration in ppm',
               labels,
               '#E64D3A',
-              avgC02Data
+              avgCO2Data
             );
           orgChart = buildLineChart(
               'orgLineChart',
-              'Organic component concentration in ppb',
+              'Volatile organic components concentration in ppb',
               labels,
               '#E64D3C',
               avgOrgData
           );
+        } else {
+          addData(cO2Chart, labels[labels.length-1], avgCO2Data[avgCO2Data.length - 1]);
+          addData(orgChart, labels[labels.length-1], avgOrgData[avgOrgData.length - 1]);
+        }
       });
   } catch (e) {
     alert('Error getting report data');
@@ -206,7 +249,7 @@ function buildLineChart(el, label, labels, color, avgData) {
           lineTension: 0.2,
           backgroundColor: color,
           borderColor: '#3A4250',
-          pointRadius: 2
+          pointRadius: 0
         }
       ]
     },
@@ -229,7 +272,7 @@ function buildLineChart(el, label, labels, color, avgData) {
               labelString: label
             },
             ticks: {
-              stepSize: 0.5
+              autoSkip: true
             }
           }
         ]
@@ -247,6 +290,15 @@ function addData(chart, label, data) {
   chart.data.labels.push(label);
   chart.data.datasets.forEach((dataset) => {
       dataset.data.push(data);
+  });
+  
+  chart.update();
+}
+
+function removeData(chart) {
+  chart.data.labels.pop();
+  chart.data.datasets.forEach((dataset) => {
+      dataset.data.pop();
   });
   chart.update();
 }
